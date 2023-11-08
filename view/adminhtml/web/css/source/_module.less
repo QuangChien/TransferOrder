@@ -1,0 +1,46 @@
+.transfer-request-list, .transfer-request-detail {
+  .transfer-request-status {
+    display: block;
+    font-weight: bold;
+    line-height: 17px;
+    padding: 2px 3px;
+    text-align: center;
+    text-transform: uppercase;
+    color: #fff;
+    font-size: 1.2rem;
+    &.pending {
+      background: #ffc107;
+      color: #333;
+    }
+    &.approved {
+      background: #28a745;
+    }
+    &.canceled {
+      background: #dc3545;
+    }
+  }
+}
+
+.transfer-request-detail {
+  .order-account-information {
+    width: 49% !important;
+    float: left!important;
+    &.order-transfer-customer-to {
+      float: right!important;
+      &:after {
+        clear: both;
+      }
+    }
+  }
+  .order-transfer-request-status {
+    width: 49%;
+    float: right;
+  }
+  .transfer-request-status {
+    display: inline-block!important;
+    padding: 4px 8px;
+  }
+  .order-information {
+    width: 49% !important;
+  }
+}

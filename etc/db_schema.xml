@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magezon
+ *
+ * This source file is subject to the Magezon Software License, which is available at https://magezon.com/license/.
+ * Do not edit or add to this file if you wish to upgrade the to newer versions in the future.
+ * If you wish to customize this module for your needs.
+ * Please refer to https://www.magezon.com for more information.
+ *
+ * @category  Magezon
+ * @author    LeeNguyen(chiennq@magezon.com)
+ * @package   Magezon_TransferOrder
+ * @copyright Copyright (C) 2023 Magezon (https://magezon.com)
+ */
+-->
+
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="mgz_transfer_order_request" resource="default" engine="innodb" comment="Magezon Transfer Order Request Table">
+        <column xsi:type="int" name="request_id" unsigned="false" nullable="false" identity="true"
+                comment="Request Id"/>
+        <column xsi:type="int" name="customer_from_id" unsigned="true" nullable="true" comment="Customer From ID"/>
+        <column xsi:type="varchar" name="customer_to_email" length="100" nullable="true" comment="Customer To Email"/>
+        <column xsi:type="varchar" name="order_increment_id" length="50" nullable="true" comment="Order Increment ID"/>
+        <column xsi:type="smallint" name="status" unsigned="true" nullable="true" comment="Status" default="0"/>
+        <column xsi:type="int" name="method_transfer" unsigned="true" nullable="true" comment="Method Transfer"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="true" comment="Order ID"/>
+        <column xsi:type="int" name="admin_user_modify_id" unsigned="true" nullable="true" comment="Admin User Modify ID"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Transfer Order Request Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Transfer Order Request Update At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="request_id"/>
+        </constraint>
+        <index referenceId="MGZ_TRANSFER_ORDER_REQUEST_INDEX" indexType="btree">
+            <column name="request_id"/>
+            <column name="status"/>
+            <column name="method_transfer"/>
+            <column name="admin_user_modify_id"/>
+            <column name="order_id"/>
+        </index>
+    </table>
+</schema>

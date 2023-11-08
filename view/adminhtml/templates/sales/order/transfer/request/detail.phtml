@@ -1,0 +1,253 @@
+<?php
+/**
+ * Magezon
+ *
+ * This source file is subject to the Magezon Software License, which is available at https://magezon.com/license/.
+ * Do not edit or add to this file if you wish to upgrade the to newer versions in the future.
+ * If you wish to customize this module for your needs.
+ * Please refer to https://www.magezon.com for more information.
+ *
+ * @category  Magezon
+ * @author    LeeNguyen(chiennq@magezon.com)
+ * @package   Magezon_TransferOrder
+ * @copyright Copyright (C) 2023 Magezon (https://magezon.com)
+ */
+
+/**
+ * @var Detail $block
+ */
+
+use Magezon\TransferOrder\Block\Adminhtml\Sales\Order\Transfer\Request\Detail;
+use Magezon\TransferOrder\Model\Config\RequestStatus;
+
+$order = $block->getOrder();
+
+$baseCurrencyCode = (string)$order->getBaseCurrencyCode();
+$globalCurrencyCode = (string)$order->getGlobalCurrencyCode();
+$orderCurrencyCode = (string)$order->getOrderCurrencyCode();
+
+$orderAdminDate = $block->formatDate(
+    $block->getOrderAdminDate($order->getCreatedAt()),
+    \IntlDateFormatter::MEDIUM,
+    true
+);
+
+$orderStoreDate = $block->formatDate(
+    $order->getCreatedAt(),
+    \IntlDateFormatter::MEDIUM,
+    true,
+    $block->getTimezoneForStore($order->getStore())
+);
+
+$transferRequestUpdateTime = $block->formatDate(
+    $block->getTransferRequest()->getUpdatedAt(),
+    \IntlDateFormatter::MEDIUM,
+    true,
+    $block->getTimezoneForStore($order->getStore())
+);
+
+$customerUrl = $block->getCustomerViewUrl();
+$customerToUrl = $block->getCustomerToViewUrl();
+
+$status = $block->getTransferRequestStatus();
+$customerTo = $block->getCustomer();
+
+$allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub', 'sup', 'ul'];
+?>
+<section class="admin__page-section order-view-account-information">
+    <div class="admin__page-section-title">
+        <span class="title"><?= $block->escapeHtml(__('Order & Transfer Request Information')) ?></span>
+    </div>
+    <div class="admin__page-section-content">
+        <div class="admin__page-section-item order-information">
+            <?php /* Order Information */ ?>
+            <?php $confirmationEmailStatusMessage = $order->getEmailSent() ? __('The order confirmation email was sent') : __('The order confirmation email is not sent'); ?>
+            <div class="admin__page-section-item-title">
+                <span class="title">
+                    <?php if ($block->getNoUseOrderLink()) : ?>
+                        <?= $block->escapeHtml(__('Order # %1', $order->getRealOrderId())) ?> (<span><?= $block->escapeHtml($confirmationEmailStatusMessage) ?></span>)
+                    <?php else : ?>
+                        <a href="<?= $block->escapeUrl($block->getViewUrl($order->getId())) ?>"><?= $block->escapeHtml(__('Order # %1', $order->getRealOrderId())) ?></a>
+                        <span>(<?= $block->escapeHtml($confirmationEmailStatusMessage) ?>)</span>
+                    <?php endif; ?>
+                </span>
+            </div>
+            <div class="admin__page-section-item-content">
+                <table class="admin__table-secondary order-information-table">
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Order Date')) ?></th>
+                        <td><?= $block->escapeHtml($orderAdminDate) ?></td>
+                    </tr>
+                    <?php if ($orderAdminDate != $orderStoreDate) : ?>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Order Date (%1)', $block->getTimezoneForStore($order->getStore()))) ?></th>
+                            <td><?= $block->escapeHtml($orderStoreDate) ?></td>
+                        </tr>
+                    <?php endif;?>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Order Status')) ?></th>
+                        <td><span id="order_status"><?= $block->escapeHtml($order->getStatusLabel()) ?></span></td>
+                    </tr>
+                    <?= $block->getChildHtml() ?>
+                    <?php if ($block->isSingleStoreMode() == false) : ?>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Purchased From')) ?></th>
+                            <td><?= $block->escapeHtml($block->getOrderStoreName(), ['br']) ?></td>
+                        </tr>
+                    <?php endif; ?>
+                    <?php if ($order->getRelationChildId()) : ?>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Link to the New Order')) ?></th>
+                            <td>
+                                <a href="<?= $block->escapeUrl($block->getViewUrl($order->getRelationChildId())) ?>">
+                                    <?= $block->escapeHtml($order->getRelationChildRealId()) ?>
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                    <?php if ($order->getRelationParentId()) : ?>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Link to the Previous Order')) ?></th>
+                            <td>
+                                <a href="<?= $block->escapeUrl($block->getViewUrl($order->getRelationParentId())) ?>">
+                                    <?= $block->escapeHtml($order->getRelationParentRealId()) ?>
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                    <?php if ($order->getRemoteIp() && $block->shouldDisplayCustomerIp()) : ?>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Placed from IP')) ?></th>
+                            <td><?= $block->escapeHtml($order->getRemoteIp()); ?><?= $order->getXForwardedFor() ? ' (' . $block->escapeHtml($order->getXForwardedFor()) . ')' : ''; ?></td>
+                        </tr>
+                    <?php endif; ?>
+                    <?php if ($globalCurrencyCode !== $baseCurrencyCode) : ?>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('%1 / %2 rate:', $globalCurrencyCode, $baseCurrencyCode)) ?></th>
+                            <td><?= $block->escapeHtml($order->getBaseToGlobalRate()) ?></td>
+                        </tr>
+                    <?php endif; ?>
+                    <?php if ($baseCurrencyCode !== $orderCurrencyCode && $globalCurrencyCode !== $orderCurrencyCode) : ?>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('%1 / %2 rate:', $orderCurrencyCode, $baseCurrencyCode)) ?></th>
+                            <td><?= $block->escapeHtml($order->getBaseToOrderRate()) ?></td>
+                        </tr>
+                    <?php endif; ?>
+                </table>
+            </div>
+        </div>
+        <div class="admin__page-section-content order-transfer-request-status">
+            <div class="admin__page-section-item">
+                <div class="admin__page-section-item-title">
+                    <span class="title">
+                        <?= __('Transfer Request') ?>
+                    </span>
+                </div>
+                <div class="admin__page-section-item-content">
+                    <table class="admin__table-secondary order-information-table">
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Status')) ?></th>
+                            <?php $statusText = ($status == RequestStatus::PENDING_STATUS) ? RequestStatus::PENDING_TEXT
+                                : (($status == RequestStatus::APPROVED_STATUS) ? RequestStatus::APPROVED_TEXT
+                                    : (($status == RequestStatus::CANCELED_STATUS) ? RequestStatus::CANCELED_TEXT : '')) ?>
+                            <td><span class="transfer-request-status <?= strtolower($statusText) ?>"><?= __($statusText) ?><span></td>
+                        </tr>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Last Updated At')) ?></th>
+                            <td><?= $block->escapeHtml($transferRequestUpdateTime) ?></td>
+                        </tr>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Admin User Modify')) ?></th>
+                            <td><?= $block->escapeHtml($block->getAdminUserNameModify()) ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="clear: both"></div>
+</section>
+
+<section class="admin__page-section">
+    <div class="admin__page-section-title">
+        <span class="title"><?= $block->escapeHtml(__('Customer Information')) ?></span>
+    </div>
+    <div class="admin__page-section-item order-account-information order-transfer-customer-from">
+        <div class="admin__page-section-item-title">
+            <span class="title"><?= $block->escapeHtml(__('Customer From')) ?></span>
+            <div class="actions">
+                <?php if ($customerUrl) : ?>
+                    <a href="<?= /* @noEscape */ $customerUrl ?>" target="_blank">
+                        <?= $block->escapeHtml(__('View Customer')) ?>
+                    </a>
+                <?php endif; ?>
+            </div>
+        </div>
+        <div class="admin__page-section-item-content">
+            <table class="admin__table-secondary order-account-information-table">
+                <tr>
+                    <th><?= $block->escapeHtml(__('Customer Name')) ?></th>
+                    <td>
+                        <?php if ($customerUrl) : ?>
+                            <a href="<?= $block->escapeUrl($customerUrl) ?>" target="_blank">
+                                <span><?= $block->escapeHtml($order->getCustomerName()) ?></span>
+                            </a>
+                        <?php else : ?>
+                            <?= $block->escapeHtml($order->getCustomerName()) ?>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <tr>
+                    <th><?= $block->escapeHtml(__('Email')) ?></th>
+                    <td><a href="mailto:<?= $block->escapeHtmlAttr($order->getCustomerEmail()) ?>"><?= $block->escapeHtml($order->getCustomerEmail()) ?></a></td>
+                </tr>
+                <?php if ($groupName = $block->getCustomerGroupName()) : ?>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Customer Group')) ?></th>
+                        <td><?= $block->escapeHtml($groupName) ?></td>
+                    </tr>
+                <?php endif; ?>
+
+            </table>
+        </div>
+    </div>
+    <div class="admin__page-section-item order-account-information order-transfer-customer-to">
+        <div class="admin__page-section-item-title">
+            <span class="title"><?= $block->escapeHtml(__('Customer To')) ?></span>
+            <div class="actions">
+                <?php if ($customerToUrl) : ?>
+                    <a href="<?= /* @noEscape */ $customerToUrl ?>" target="_blank">
+                        <?= $block->escapeHtml(__('View Customer')) ?>
+                    </a>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="admin__page-section-item-content">
+            <table class="admin__table-secondary order-account-information-table">
+                <tr>
+                    <th><?= $block->escapeHtml(__('Customer Name')) ?></th>
+                    <td>
+                        <?php if ($customerToUrl) : ?>
+                            <a href="<?= $block->escapeUrl($customerToUrl) ?>" target="_blank">
+                                <span><?= $block->escapeHtml($customerTo->getName()) ?></span>
+                            </a>
+                        <?php else : ?>
+                            <?= $block->escapeHtml($customerTo->getName()) ?>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <tr>
+                    <th><?= $block->escapeHtml(__('Email')) ?></th>
+                    <td><a href="mailto:<?= $block->escapeHtmlAttr($customerTo->getEmail()) ?>"><?= $block->escapeHtml($customerTo->getEmail()) ?></a></td>
+                </tr>
+                <?php if ($groupName = $block->getCustomerGroupTo()) : ?>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Customer Group')) ?></th>
+                        <td><?= $block->escapeHtml($groupName) ?></td>
+                    </tr>
+                <?php endif; ?>
+            </table>
+        </div>
+    </div>
+</section>

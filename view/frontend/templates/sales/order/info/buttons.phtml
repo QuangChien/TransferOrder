@@ -1,0 +1,96 @@
+<?php
+/**
+ * Magezon
+ *
+ * This source file is subject to the Magezon Software License, which is available at https://magezon.com/license/.
+ * Do not edit or add to this file if you wish to upgrade the to newer versions in the future.
+ * If you wish to customize this module for your needs.
+ * Please refer to https://www.magezon.com for more information.
+ *
+ * @category  Magezon
+ * @author    LeeNguyen(chiennq@magezon.com)
+ * @package   Magezon_TransferOrder
+ * @copyright Copyright (C) 2023 Magezon (https://magezon.com)
+ */
+
+/** @var Buttons $block */
+use Magezon\TransferOrder\Block\Sales\Order\Info\Buttons;
+
+?>
+<div class="actions">
+    <?php $_order = $block->getOrder() ?>
+    <?php if ($this->helper(\Magento\Sales\Helper\Reorder::class)->canReorder($_order->getEntityId())) : ?>
+        <a href="#" data-post='<?=
+        /* @noEscape */ $this->helper(\Magento\Framework\Data\Helper\PostHelper::class)
+            ->getPostData($block->getReorderUrl($_order))
+        ?>' class="action order">
+            <span><?= $block->escapeHtml(__('Reorder')) ?></span>
+        </a>
+    <?php endif ?>
+    <?php if($block->isEnabled()) : ?>
+        <a href="javascript:" id="show-popup"><?= $block->escapeHtml(__('Transfer Order')) ?></a>
+    <?php endif ?>
+    <a href="<?= $block->escapeUrl($block->getPrintUrl($_order)) ?>"
+       class="action print"
+       target="_blank"
+       rel="noopener">
+        <span><?= $block->escapeHtml(__('Print Order')) ?></span>
+    </a>
+    <?= $block->getChildHtml() ?>
+</div>
+
+<?php if($block->isEnabled()) : ?>
+    <div id="transfer-order">
+        <form id="transfer-order-form" method="POST" data-mage-init='{"validation":{}}' action="<?= $block->escapeUrl($block->getFormAction()) ?>">
+            <fieldset class="fieldset">
+                <div class="field note no-label">
+                    <?= $block->escapeHtml(__('Please enter the email of the account you want to transfer.')) ?>
+                </div>
+                <div class="field email required">
+                    <label class="label" for="email"><span><?= $block->escapeHtml(__('Email')) ?></span></label>
+                    <div class="control">
+                        <input name="email"
+                               id="email"
+                               class="input-text"
+                               type="email"
+                               data-validate="{required:true, 'validate-email':true}"
+                               data-mage-init='{"mage/trim-input":{}}'
+                        />
+                    </div>
+                </div>
+            </fieldset>
+            <div class="actions-toolbar">
+                <div class="primary">
+                    <input type="hidden" name="increment_id" id="increment-id" value="<?= $block->escapeHtml($_order->getRealOrderId()) ?>" />
+                    <input type="hidden" name="order_id" id="order-id" value="<?= $block->escapeHtml($_order->getId()) ?>" />
+                    <input type="hidden" name="customer_id" id="customer-id" value="<?= $block->escapeHtml($_order->getCustomerId()) ?>" />
+                    <button type="submit" title="<?= $block->escapeHtmlAttr(__('Submit')) ?>" class="action submit primary">
+                        <span><?= $block->escapeHtml(__('Submit')) ?></span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        require(['jquery', 'Magento_Ui/js/modal/modal'], function ($, modal) {
+            let options = {
+                type: 'popup',
+                responsive: true,
+                innerScroll: true,
+                modalClass: 'transform-order-popup',
+                title: $.mage.__('Transfer Order'),
+                buttons: [{
+                    text: $.mage.__('Close'),
+                    class: 'action',
+                    click: function () {
+                        this.closeModal();
+                    }
+                }]
+            };
+            let popup = modal(options, $('#transfer-order'));
+            $('#show-popup').click(function () {
+                $('#transfer-order').modal('openModal');
+            })
+        });
+    </script>
+<?php endif ?>

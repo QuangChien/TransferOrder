@@ -1,0 +1,61 @@
+<?php
+/**
+ * Magezon
+ *
+ * This source file is subject to the Magezon Software License, which is available at https://magezon.com/license/.
+ * Do not edit or add to this file if you wish to upgrade the to newer versions in the future.
+ * If you wish to customize this module for your needs.
+ * Please refer to https://www.magezon.com for more information.
+ *
+ * @category  Magezon
+ * @author    LeeNguyen(chiennq@magezon.com)
+ * @package   Magezon_TransferOrder
+ * @copyright Copyright (C) 2023 Magezon (https://magezon.com)
+ */
+
+/** @var Request $block */
+use Magezon\TransferOrder\Block\Sales\Order\Transfer\Request;
+use Magezon\TransferOrder\Model\Config\RequestStatus;
+
+?>
+<?php $orderTransferRequests = $block->getOrderTransferRequests(); ?>
+<?php if ($orderTransferRequests && count($orderTransferRequests)) : ?>
+    <div class="table-wrapper orders-transfer-wrapper">
+        <table class="data table table-order-items transfer-request" id="transfer-order-request-table">
+            <caption class="table-caption"><?= $block->escapeHtml(__('Orders')) ?></caption>
+            <thead>
+            <tr>
+                <th scope="col" class="col id"><?= $block->escapeHtml(__('Request ID')) ?></th>
+                <th scope="col" class="col email"><?= $block->escapeHtml(__('Transfer To Customer Email')) ?></th>
+                <th scope="col" class="col order"><?= $block->escapeHtml(__('Order Increment ID')) ?></th>
+                <th scope="col" class="col date"><?= $block->escapeHtml(__('Time Created')) ?></th>
+                <th scope="col" class="col status"><?= $block->escapeHtml(__('Status')) ?></th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($orderTransferRequests as $item) : ?>
+                <tr>
+                    <td data-th="<?= $block->escapeHtml(__('Order #')) ?>" class="col id"><?= $block->escapeHtml($item->getRequestId()) ?></td>
+                    <td data-th="<?= $block->escapeHtml(__('Transfer To Customer Email')) ?>" class="col email"><?= $block->escapeHtml($item->getCustomerToEmail())?></td>
+                    <td data-th="<?= $block->escapeHtml(__('Order Increment')) ?>" class="col order">
+                        <a href="<?= $block->escapeUrl($block->getViewUrl($item)) ?>">#<?= $block->escapeHtml($item->getOrderIncrementId())?></a>
+                    </td>
+                    <td data-th="<?= $block->escapeHtml(__('Time Created')) ?>" class="col date"><?= /* @noEscape */ $block->formatDate($item->getCreatedAt(), IntlDateFormatter::SHORT, true) ?></td>
+                    <td data-th="<?= $block->escapeHtml(__('Status')) ?>" class="col status">
+                        <?php $statusText = ($item->getStatus() == RequestStatus::PENDING_STATUS) ? RequestStatus::PENDING_TEXT : (($item->getStatus() == RequestStatus::APPROVED_STATUS)
+                            ? RequestStatus::APPROVED_TEXT : (($item->getStatus() == RequestStatus::CANCELED_STATUS) ? RequestStatus::CANCELED_TEXT : '')) ?>
+                        <span class="transfer-status <?= strtolower($statusText) ?>">
+                            <?= __($statusText) ?>
+                        </span>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php if ($block->getPagerHtml()) : ?>
+        <div class="order-transfer-toolbar toolbar bottom"><?= $block->getPagerHtml() ?></div>
+    <?php endif ?>
+<?php else : ?>
+    <div class="message info empty"><span><?= $block->escapeHtml(__('There is no order transform request.')) ?></span></div>
+<?php endif ?>

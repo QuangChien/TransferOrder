@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magezon
+ *
+ * This source file is subject to the Magezon Software License, which is available at https://magezon.com/license/.
+ * Do not edit or add to this file if you wish to upgrade the to newer versions in the future.
+ * If you wish to customize this module for your needs.
+ * Please refer to https://www.magezon.com for more information.
+ *
+ * @category  Magezon
+ * @author    LeeNguyen(chiennq@magezon.com)
+ * @package   Magezon_TransferOrder
+ * @copyright Copyright (C) 2023 Magezon (https://magezon.com)
+ */
+-->
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">sales_order_transfer_request_form.sales_order_transfer_request_form_data_source</item>
+            <item name="deps" xsi:type="string">sales_order_transfer_request_form.sales_order_transfer_request_form_data_source</item>
+        </item>
+        <item name="config" xsi:type="array">
+            <item name="namespace" xsi:type="string">sales_order_transfer_request_form</item>
+        </item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+        <item name="buttons" xsi:type="array">
+            <item name="approved" xsi:type="string">Magezon\TransferOrder\Block\Adminhtml\Sales\Order\Transfer\Buttons\Approved</item>
+            <item name="cancel" xsi:type="string">Magezon\TransferOrder\Block\Adminhtml\Sales\Order\Transfer\Buttons\Cancel</item>
+            <item name="back" xsi:type="string">Magezon\TransferOrder\Block\Adminhtml\Sales\Order\Transfer\Buttons\Back</item>
+        </item>
+    </argument>
+    <dataSource name="sales_order_transfer_request_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <argument name="dataProvider" xsi:type="configurableObject">
+            <argument name="class" xsi:type="string">Magezon\TransferOrder\Model\DataProvider</argument>
+            <argument name="name" xsi:type="string">sales_order_transfer_request_form_data_source</argument>
+            <argument name="primaryFieldName" xsi:type="string">request_id</argument>
+            <argument name="requestFieldName" xsi:type="string">id</argument>
+        </argument>
+    </dataSource>
+    <htmlContent name="order_transfer_request_detail_html">
+        <block class="Magezon\TransferOrder\Block\Adminhtml\Sales\Order\Transfer\Request\Detail" name="order_transfer_request_detail" template="Magezon_TransferOrder::sales/order/transfer/request/detail.phtml"/>
+    </htmlContent>
+</form>
